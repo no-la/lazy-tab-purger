@@ -1,0 +1,10 @@
+{
+  "id": "lazy-tab-purger",
+  "name": "Lazy Tab Purger",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Automatically closes background Markdown tabs that have been inactive for a specified duration.",
+  "author": "nola",
+  "authorUrl": "",
+  "isDesktopOnly": true
+}
