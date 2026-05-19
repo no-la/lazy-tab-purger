@@ -31,9 +31,7 @@ export default class LazyTabPurger extends Plugin {
 		this.addSettingTab(new LazyTabPurgerSettingTab(this.app, this));
 
 		this.app.workspace.iterateAllLeaves((leaf) => {
-			if (leaf.lastActiveTime === undefined) {
-				leaf.lastActiveTime = Date.now();
-			}
+			if (leaf.lastActiveTime === undefined) leaf.lastActiveTime = Date.now();
 		});
 
 		this.registerEvent(
@@ -43,6 +41,12 @@ export default class LazyTabPurger extends Plugin {
 		);
 
 		this.startCleanupLoop();
+
+		this.addCommand({
+			id: "purge-now",
+			name: "今すぐ非アクティブタブを閉じる",
+			callback: () => this.purgeInactiveTabs(),
+		});
 
 		console.log(
 			`[LazyTabPurger] loaded — checking every ${this.settings.checkIntervalMin} min, ` +
@@ -79,25 +83,36 @@ export default class LazyTabPurger extends Plugin {
 	}
 
 	private purgeInactiveTabs(): void {
-		const now        = Date.now();
-		const activeLeaf = this.app.workspace.activeLeaf;
-		const threshold  = this.settings.inactiveThresholdMin * 60_000;
+		const now       = Date.now();
+		const threshold = this.settings.inactiveThresholdMin * 60_000;
 		const toClose: WorkspaceLeaf[] = [];
 
-		this.app.workspace.iterateAllLeaves((leaf) => {
-			if (!(leaf.view instanceof MarkdownView)) return;
-			if (leaf === activeLeaf) return;
-			if (leaf.pinned) return;
+		console.log(`[LazyTabPurger] scanning...`);
 
-			const lastActive = leaf.lastActiveTime ?? now;
-			if (now - lastActive > threshold) {
-				toClose.push(leaf);
-			}
+		this.app.workspace.iterateAllLeaves((leaf) => {
+			const isMarkdown  = leaf.getViewState().type === "markdown";
+			const isVisible   = leaf.containerEl.isShown(); // active leaf or visible in any split
+			const isPinned    = leaf.pinned ?? false;
+			const lastActive  = leaf.lastActiveTime ?? now;
+			const elapsed     = now - lastActive;
+
+			console.log(
+				`[LazyTabPurger] leaf="${leaf.getDisplayText()}" ` +
+				`markdown=${isMarkdown} visible=${isVisible} pinned=${isPinned} ` +
+				`elapsed=${Math.round(elapsed / 1000)}s threshold=${threshold / 1000}s`
+			);
+
+			if (!isMarkdown) return;
+			if (isVisible) return;  // protect: active or shown in split
+			if (isPinned) return;
+			if (elapsed > threshold) toClose.push(leaf);
 		});
 
 		if (toClose.length > 0) {
 			console.log(`[LazyTabPurger] closing ${toClose.length} inactive tab(s)`);
 			toClose.forEach((leaf) => leaf.detach());
+		} else {
+			console.log(`[LazyTabPurger] nothing to close`);
 		}
 	}
 }
