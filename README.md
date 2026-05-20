@@ -52,3 +52,60 @@ Patterns are matched against the vault-relative file path. Standard glob syntax 
 2. At each check interval, all background Markdown tabs are scanned
 3. Any tab whose `lastActiveTime` exceeds the inactivity threshold is closed via `leaf.detach()`
 4. Tabs that are active, visible in a split pane, pinned, or matching an exclude pattern are always protected
+
+---
+
+# Lazy Tab Purger（日本語）
+
+放置されたバックグラウンドの Markdown タブを自動で閉じる Obsidian プラグインです。
+
+## 機能
+
+- **自動クリーンアップ** — 設定した間隔でバックグラウンドタブをスキャンし、放置時間を超えたものを自動で閉じます
+- **スマートな保護** — アクティブなタブ・split で表示中のタブ・ピン留めされたタブは絶対に閉じません
+- **遅延ロード対応** — Obsidian が lazy-load しているタブ（未レンダリングのもの）も正しく検出します
+- **ワークスペース対応** — ワークスペース切り替え時に表示されていたタブのタイムスタンプをリセットするため、切り替え直後に誤って閉じることがありません
+- **除外パターン** — グロブ形式で特定のフォルダやファイルを保護対象にできます（例: `01_Daily/**`、`Templates/**`）
+- **手動実行コマンド** — コマンドパレットから「今すぐ非アクティブタブを閉じる」でいつでも即時実行できます
+- **デスクトップ専用** — モバイルでは動作しません
+
+## インストール
+
+### BRAT を使う方法（ベータ版として推奨）
+
+1. コミュニティプラグインから [BRAT](https://github.com/TfTHacker/obsidian42-brat) をインストール
+2. BRAT の設定を開き **「Add Beta plugin」** をクリック
+3. `no-la/lazy-tab-purger` を入力
+4. 設定 → コミュニティプラグインでプラグインを有効化
+
+### 手動インストール
+
+1. [最新リリース](https://github.com/no-la/lazy-tab-purger/releases/latest) から `main.js` と `manifest.json` をダウンロード
+2. Vault 内の `.obsidian/plugins/lazy-tab-purger/` にコピー
+3. 設定 → コミュニティプラグインでプラグインを有効化
+
+## 設定
+
+| 項目 | デフォルト | 説明 |
+|---|---|---|
+| 放置タイムアウト（分） | 60 | この時間を超えたバックグラウンドタブを閉じます |
+| チェック間隔（分） | 30 | スキャンを実行する間隔 |
+| 除外パターン | _(なし)_ | 自動クローズの対象外にするファイル・フォルダ（1行1パターン） |
+
+### 除外パターンの例
+
+```
+01_Daily/**
+Templates/**
+00_Inbox/**
+**/*.canvas
+```
+
+パターンは Vault ルートからの相対パスに対してマッチします。標準的なグロブ構文（`*`、`**`、`?`）が使えます。
+
+## 仕組み
+
+1. タブを切り替えるたびに、そのタブに現在時刻（`lastActiveTime`）を記録
+2. チェック間隔ごとに、すべてのバックグラウンド Markdown タブをスキャン
+3. `lastActiveTime` が放置タイムアウトを超えているタブを `leaf.detach()` で閉じる
+4. アクティブ・split 表示中・ピン留め・除外パターン一致のタブは常に保護
