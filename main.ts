@@ -40,6 +40,16 @@ export default class LazyTabPurger extends Plugin {
 			})
 		);
 
+		// workspace切り替え時、新しく可視になった全leafをスタンプする
+		this.registerEvent(
+			this.app.workspace.on("layout-change", () => {
+				this.app.workspace.iterateAllLeaves((leaf) => {
+					if (leaf.containerEl.isShown()) leaf.lastActiveTime = Date.now();
+					else if (leaf.lastActiveTime === undefined) leaf.lastActiveTime = Date.now();
+				});
+			})
+		);
+
 		this.startCleanupLoop();
 
 		this.addCommand({
