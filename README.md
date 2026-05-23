@@ -1,5 +1,15 @@
 # Lazy Tab Purger
 
+[English](#lazy-tab-purger) | [日本語](#lazy-tab-purger日本語)
+
+**Contents**
+- [Features](#features) / [機能](#機能)
+- [Installation](#installation) / [インストール](#インストール)
+- [Configuration](#configuration) / [設定](#設定)
+- [How it works](#how-it-works) / [仕組み](#仕組み)
+
+---
+
 Obsidian plugin that automatically closes background Markdown tabs that have been inactive for a specified duration.
 
 ## Features
@@ -9,7 +19,7 @@ Obsidian plugin that automatically closes background Markdown tabs that have bee
 - **Deferred tab support** — Correctly handles tabs that Obsidian has lazy-loaded (not yet rendered as a MarkdownView)
 - **Workspace-aware** — Resets inactivity timestamps when switching workspaces, so tabs that were visible before a switch are not immediately purged
 - **Exclude patterns** — Specify folders or files to protect permanently using glob patterns (e.g. `01_Daily/**`, `Templates/**`)
-- **Manual command** — Run "今すぐ非アクティブタブを閉じる" from the command palette to purge immediately
+- **Manual command** — Run "Purge inactive tabs now" from the command palette to purge immediately
 - **Desktop only** — No effect on mobile
 
 ## Installation
@@ -31,9 +41,9 @@ Obsidian plugin that automatically closes background Markdown tabs that have bee
 
 | Setting | Default | Description |
 |---|---|---|
-| 放置タイムアウト（分） | 60 | Minutes of inactivity before a background tab is closed |
-| チェック間隔（分） | 30 | How often to scan for inactive tabs |
-| 除外パターン | _(none)_ | Glob patterns for files/folders to never auto-close (one per line) |
+| Inactivity timeout (minutes) | 60 | Minutes of inactivity before a background tab is closed |
+| Check interval (minutes) | 30 | How often to scan for inactive tabs |
+| Exclude patterns | _(none)_ | Glob patterns for files/folders to never auto-close (one per line) |
 
 ### Exclude pattern examples
 
@@ -88,9 +98,9 @@ Patterns are matched against the vault-relative file path. Standard glob syntax 
 
 | 項目 | デフォルト | 説明 |
 |---|---|---|
-| 放置タイムアウト（分） | 60 | この時間を超えたバックグラウンドタブを閉じます |
-| チェック間隔（分） | 30 | スキャンを実行する間隔 |
-| 除外パターン | _(なし)_ | 自動クローズの対象外にするファイル・フォルダ（1行1パターン） |
+| Inactivity timeout (minutes) — 放置タイムアウト（分） | 60 | この時間を超えたバックグラウンドタブを閉じます |
+| Check interval (minutes) — チェック間隔（分） | 30 | スキャンを実行する間隔 |
+| Exclude patterns — 除外パターン | _(なし)_ | 自動クローズの対象外にするファイル・フォルダ（1行1パターン） |
 
 ### 除外パターンの例
 
