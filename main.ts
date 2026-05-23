@@ -145,7 +145,11 @@ class LazyTabPurgerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Inactivity timeout (minutes) — 放置タイムアウト（分）")
-			.setDesc("Close background tabs that have been inactive longer than this. / バックグラウンドタブがこの時間を超えると自動で閉じられます。")
+			.setDesc(createFragment((f) => {
+				f.appendText("Close background tabs that have been inactive longer than this.");
+				f.createEl("br");
+				f.appendText("バックグラウンドタブがこの時間を超えると自動で閉じられます。");
+			}))
 			.addText((text) =>
 				text
 					.setPlaceholder("60")
@@ -161,7 +165,11 @@ class LazyTabPurgerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Check interval (minutes) — チェック間隔（分）")
-			.setDesc("How often to scan for inactive tabs. Changes take effect immediately. / この間隔でバックグラウンドのタブをスキャンします。変更後は即時反映されます。")
+			.setDesc(createFragment((f) => {
+				f.appendText("How often to scan for inactive tabs. Changes take effect immediately.");
+				f.createEl("br");
+				f.appendText("この間隔でバックグラウンドのタブをスキャンします。変更後は即時反映されます。");
+			}))
 			.addText((text) =>
 				text
 					.setPlaceholder("30")
@@ -178,11 +186,11 @@ class LazyTabPurgerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Exclude patterns — 除外パターン")
-			.setDesc(
-				"Glob patterns for files/folders to exclude from auto-close, one per line. " +
-				"E.g. 01_Daily/** / Templates/** / **/*.canvas\n" +
-				"自動クローズの対象外にするファイル・フォルダをグロブ形式で指定します（1行1パターン）。"
-			)
+			.setDesc(createFragment((f) => {
+				f.appendText("Glob patterns for files/folders to exclude from auto-close, one per line. E.g. 01_Daily/** / Templates/** / **/*.canvas");
+				f.createEl("br");
+				f.appendText("自動クローズの対象外にするファイル・フォルダをグロブ形式で指定します（1行1パターン）。例: 01_Daily/** / Templates/** / **/*.canvas");
+			}))
 			.addTextArea((area) =>
 				area
 					.setPlaceholder("01_Daily/**\nTemplates/**")
