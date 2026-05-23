@@ -1,6 +1,6 @@
 {
   "name": "lazy-tab-purger",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Obsidian plugin: auto-close inactive background tabs",
   "main": "main.js",
   "scripts": {
