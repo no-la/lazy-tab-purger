@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - manifest.json
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: node esbuild.config.mjs production
+      - name: Get version from manifest
+        id: version
+        run: echo "version=$(jq -r .version manifest.json)" >> $GITHUB_OUTPUT
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" \
+            main.js manifest.json \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
