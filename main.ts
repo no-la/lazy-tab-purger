@@ -1,5 +1,5 @@
 import { MarkdownView, Platform, Plugin, PluginSettingTab, App, Setting, WorkspaceLeaf } from "obsidian";
-import { minimatch } from "minimatch";
+import { isExcluded, shouldClose } from "./src/purge";
 
 const DEFAULT_INACTIVE_THRESHOLD = 3_600_000; // 1 hour in ms
 const DEFAULT_CHECK_INTERVAL     = 1_800_000; // 30 minutes in ms
@@ -95,12 +95,6 @@ export default class LazyTabPurger extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	private isExcluded(filePath: string): boolean {
-		return this.settings.excludePatterns.some((pattern) =>
-			minimatch(filePath, pattern, { matchBase: true })
-		);
-	}
-
 	private purgeInactiveTabs(): void {
 		const now       = Date.now();
 		const threshold = this.settings.inactiveThresholdMin * 60_000;
@@ -109,25 +103,23 @@ export default class LazyTabPurger extends Plugin {
 		console.log(`[LazyTabPurger] scanning...`);
 
 		this.app.workspace.iterateAllLeaves((leaf) => {
-			const isMarkdown  = leaf.getViewState().type === "markdown";
-			const isVisible   = leaf.containerEl.isShown();
-			const isPinned    = leaf.pinned ?? false;
-			const lastActive  = leaf.lastActiveTime ?? now;
-			const elapsed     = now - lastActive;
-			const filePath    = (leaf.getViewState().state?.file as string | undefined) ?? "";
-			const isExcluded  = filePath ? this.isExcluded(filePath) : false;
+			const isMarkdown = leaf.getViewState().type === "markdown";
+			const isVisible  = leaf.containerEl.isShown();
+			const isPinned   = leaf.pinned ?? false;
+			const lastActive = leaf.lastActiveTime ?? now;
+			const elapsed    = now - lastActive;
+			const filePath   = (leaf.getViewState().state?.file as string | undefined) ?? "";
 
+			const excluded = filePath ? isExcluded(filePath, this.settings.excludePatterns) : false;
 			console.log(
 				`[LazyTabPurger] leaf="${leaf.getDisplayText()}" ` +
-				`markdown=${isMarkdown} visible=${isVisible} pinned=${isPinned} excluded=${isExcluded} ` +
+				`markdown=${isMarkdown} visible=${isVisible} pinned=${isPinned} excluded=${excluded} ` +
 				`elapsed=${Math.round(elapsed / 1000)}s threshold=${threshold / 1000}s`
 			);
 
-			if (!isMarkdown) return;
-			if (isVisible) return;
-			if (isPinned) return;
-			if (isExcluded) return;
-			if (elapsed > threshold) toClose.push(leaf);
+			if (shouldClose({ isMarkdown, isVisible, isPinned, filePath, elapsed, threshold, excludePatterns: this.settings.excludePatterns })) {
+				toClose.push(leaf);
+			}
 		});
 
 		if (toClose.length > 0) {
@@ -152,8 +144,8 @@ class LazyTabPurgerSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("放置タイムアウト（分）")
-			.setDesc("バックグラウンドタブがこの時間を超えると自動で閉じられます。")
+			.setName("Inactivity timeout (minutes) — 放置タイムアウト（分）")
+			.setDesc("Close background tabs that have been inactive longer than this. / バックグラウンドタブがこの時間を超えると自動で閉じられます。")
 			.addText((text) =>
 				text
 					.setPlaceholder("60")
@@ -168,8 +160,8 @@ class LazyTabPurgerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("チェック間隔（分）")
-			.setDesc("この間隔でバックグラウンドのタブをスキャンします。変更後は即時反映されます。")
+			.setName("Check interval (minutes) — チェック間隔（分）")
+			.setDesc("How often to scan for inactive tabs. Changes take effect immediately. / この間隔でバックグラウンドのタブをスキャンします。変更後は即時反映されます。")
 			.addText((text) =>
 				text
 					.setPlaceholder("30")
@@ -185,10 +177,11 @@ class LazyTabPurgerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("除外パターン")
+			.setName("Exclude patterns — 除外パターン")
 			.setDesc(
-				"自動クローズの対象外にするファイル・フォルダをグロブ形式で指定します（1行1パターン）。" +
-				"例: 01_Daily/** / Templates/** / **/*.canvas"
+				"Glob patterns for files/folders to exclude from auto-close, one per line. " +
+				"E.g. 01_Daily/** / Templates/** / **/*.canvas\n" +
+				"自動クローズの対象外にするファイル・フォルダをグロブ形式で指定します（1行1パターン）。"
 			)
 			.addTextArea((area) =>
 				area
